@@ -17,8 +17,7 @@ class PolicyNetwork(models.Model):
         self.action_space = action_space
 
         self.model = models.Sequential([
-            layers.Input(shape=env_space),
-            layers.Dense(units=hidden_state, activation="relu"),
+            layers.Linear(units=hidden_state, activation="relu"),
             layers.Dense(units=action_space, activation=tf.nn.softmax)
         ])
 
@@ -26,13 +25,31 @@ class PolicyNetwork(models.Model):
         return self.model(state)
     
 
-    @tf.function
     def get_action(self, state:np.array):
-        state_tensor = tf.convert_to_tensor(state[:, np.newaxis], dtype=tf.float32)
-        prob = self.call(state_tensor)
+        prob = self.call(state[np.newaxis, :])
 
         best_action = np.random.choice(self.action_space, p=tf.squeeze(prob).numpy())
 
         log_probab = tf.math.log(tf.squeeze(prob)[best_action])
 
         return best_action, log_probab
+    
+    # # @tf.function
+    def update_policy(self, rewards, log_probs, optimizer:tf.optimizers.Optimizer ,gamma=0.9):
+        _discounted_rewards = []
+        
+        for t in range(len(rewards)):
+            G_t, pw = 0, 0
+            for r in rewards[t:]:
+                G_t += gamma**pw * r
+                pw += 1
+            
+            _discounted_rewards.append(G_t)
+
+
+        _discounted_rewards = np.array(_discounted_rewards)
+        _discounted_rewards = (_discounted_rewards - _discounted_rewards.mean()) / (_discounted_rewards.std() + 1e-9) # normalize discounted rewards
+
+        policy_gradients = [-log_prob*Gt for log_prob, Gt in zip(log_probs, _discounted_rewards)]
+
+        optimizer.apply_gradients(zip(policy_gradients, self.weights))
