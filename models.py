@@ -3,10 +3,11 @@ author:Sanidhya Mangal
 github:sanidhyamangal
 """
 
-import tensorflow as tf # for deep learning
-import numpy as np # for matrix multiplication
+import numpy as np  # for matrix multiplication
+import tensorflow as tf  # for deep learning
+import tensorflow_probability as tfp  # for probablistic
+from tensorflow.keras import layers, models
 
-from tensorflow.keras import models, layers
 
 class PolicyNetwork(models.Model):
 
@@ -17,8 +18,8 @@ class PolicyNetwork(models.Model):
         self.action_space = action_space
 
         self.model = models.Sequential([
-            layers.Linear(units=hidden_state, activation="relu"),
-            layers.Dense(units=action_space, activation=tf.nn.softmax)
+            layers.Dense(units=hidden_state, activation="relu"),
+            layers.Dense(units=action_space, activation="softmax")
         ])
 
     def call(self, state, training=None):
@@ -26,30 +27,14 @@ class PolicyNetwork(models.Model):
     
 
     def get_action(self, state:np.array):
-        prob = self.call(state[np.newaxis, :])
-
-        best_action = np.random.choice(self.action_space, p=tf.squeeze(prob).numpy())
-
-        log_probab = tf.math.log(tf.squeeze(prob)[best_action])
-
-        return best_action, log_probab
-    
-    # # @tf.function
-    def update_policy(self, rewards, log_probs, optimizer:tf.optimizers.Optimizer ,gamma=0.9):
-        _discounted_rewards = []
+        # compute the softmax probablities for the state
+        prob = self.call(np.array([state]))
         
-        for t in range(len(rewards)):
-            G_t, pw = 0, 0
-            for r in rewards[t:]:
-                G_t += gamma**pw * r
-                pw += 1
-            
-            _discounted_rewards.append(G_t)
+        # compute the prob distributions for the given probs
+        dist = tfp.distributions.Categorical(probs=prob, dtype=tf.float32)
 
+        # sample the probablity distribution
+        action = dist.sample()
 
-        _discounted_rewards = np.array(_discounted_rewards)
-        _discounted_rewards = (_discounted_rewards - _discounted_rewards.mean()) / (_discounted_rewards.std() + 1e-9) # normalize discounted rewards
-
-        policy_gradients = [-log_prob*Gt for log_prob, Gt in zip(log_probs, _discounted_rewards)]
-
-        optimizer.apply_gradients(zip(policy_gradients, self.weights))
+        # return action with highest probablity
+        return int(action.numpy()[0])
