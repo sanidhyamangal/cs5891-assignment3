@@ -4,51 +4,42 @@ github:sanidhyamangal
 """
 
 import tensorflow as tf  # for deep learning
-from tensorflow.keras import models, layers
+from tensorflow.keras import layers
 
 
-class BaseLinearModel(models.Model):
-    """
-    Define a base linear model which would be later used by actor and critic methods
-    """
-    def __init__(self, action_space: int, hidden_state: int, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+def Actor(n_states: int, upper_bound: float, n_hidden_states: int = 256):
+    # Initialize weights between -3e-3 and 3-e3
+    last_init = tf.random_uniform_initializer(minval=-0.003, maxval=0.003)
 
-        self.model = models.Sequential([
-            layers.Dense(hidden_state, activation="relu"),
-            layers.Dense(hidden_state, activation="relu"),
-            layers.Dense(action_space)
-        ])
+    inputs = layers.Input(shape=(n_states, ))
+    out = layers.Dense(n_hidden_states, activation="relu")(inputs)
+    out = layers.Dense(n_hidden_states, activation="relu")(out)
+    outputs = layers.Dense(1, activation="tanh",
+                           kernel_initializer=last_init)(out)
 
-
-class Actor(BaseLinearModel):
-    def __init__(self, upper_bound: int, hidden_state: int, *args, **kwargs):
-        self.upper_bound = upper_bound
-        super().__init__(1, hidden_state, *args, **kwargs)
-
-    def call(self, state, training=None):
-        x = self.model(state, training=training)
-        x = tf.nn.tanh(x)
-
-        return x * self.upper_bound
+    # Our upper bound is 2.0 for Pendulum.
+    outputs = outputs * upper_bound
+    model = tf.keras.Model(inputs, outputs)
+    return model
 
 
-class Critic(BaseLinearModel):
-    def __init__(self, action_space: int, hidden_state: int, *args, **kwargs):
-        super().__init__(action_space, hidden_state, *args, **kwargs)
+def Critic(n_states: int, n_action: int, n_hidden_states: int = 256):
+    state_input = layers.Input(shape=(n_states))
+    state_out = layers.Dense(16, activation="relu")(state_input)
+    state_out = layers.Dense(32, activation="relu")(state_out)
 
-        self.state_embeds = models.Sequential([
-            layers.Dense(16, activation="relu"),
-            layers.Dense(32, activation="relu")
-        ])
+    # Action as input
+    action_input = layers.Input(shape=(n_action))
+    action_out = layers.Dense(32, activation="relu")(action_input)
 
-        self.action_embeds = layers.Dense(32, activation="relu")
+    # Both are passed through seperate layer before concatenating
+    concat = layers.Concatenate()([state_out, action_out])
 
-    def call(self, state, action, training=None):
-        state = self.state_embeds(state)
-        action = self.action_embeds(action)
+    out = layers.Dense(n_hidden_states, activation="relu")(concat)
+    out = layers.Dense(n_hidden_states, activation="relu")(out)
+    outputs = layers.Dense(1)(out)
 
-        _input = tf.concat([state, action], axis=1)
-        x = self.model(_input, training=training)
+    # Outputs single value for give state-action
+    model = tf.keras.Model([state_input, action_input], outputs)
 
-        return x
+    return model

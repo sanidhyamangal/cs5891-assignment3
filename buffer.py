@@ -67,9 +67,8 @@ class ExperienceBuffer(tf.Module):
         with tf.GradientTape() as tape:
             target_actions = self.target_actor(next_state_batch, training=True)
             y = reward_batch + gamma * self.target_critic(
-                next_state_batch, target_actions, training=True)
-            critic_value = self.critic(state_batch,
-                                       action_batch,
+                [next_state_batch, target_actions], training=True)
+            critic_value = self.critic([state_batch, action_batch],
                                        training=True)
             critic_loss = tf.math.reduce_mean(tf.math.square(y - critic_value))
 
@@ -81,7 +80,7 @@ class ExperienceBuffer(tf.Module):
         # work on grads for the actor
         with tf.GradientTape() as tape:
             actions = self.actor(state_batch, training=True)
-            critic_val = self.critic(state_batch, actions, training=True)
+            critic_val = self.critic([state_batch, actions], training=True)
 
             # we use negative value for the critic_loss since we aim to maximize it
             actor_loss = -tf.math.reduce_mean(critic_val)
