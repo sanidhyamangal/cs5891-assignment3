@@ -95,6 +95,8 @@ class DDPG:
               gamma: int = 0.99,
               tau: int = 5e-3,
               plot_name: Optional[str] = None):
+        
+        logger.info("Ressting Epsidode Reward and avg reward list")
         # To store reward history of each episode
         ep_reward_list = []
         # To store average reward history of last few episodes
@@ -152,6 +154,7 @@ class DDPG:
             plt.xlabel("Episode")
             plt.ylabel("Avg. Epsiodic Reward")
             plt.savefig(plot_name)
+            plt.clf()
 
     def save_weights(self) -> None:
 
