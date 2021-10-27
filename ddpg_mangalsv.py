@@ -18,6 +18,7 @@ import tensorflow as tf
 from buffer import ExperienceBuffer
 from models import Actor, Critic
 from utils import OUNoise
+from logger import logger
 
 
 @tf.function
@@ -49,12 +50,14 @@ class DDPG:
         self.ou_noise = OUNoise(mu=np.zeros(1), std=float(std) * np.ones(1))
 
         self.actor_model = Actor(n_states=self.num_states,
+                                 n_actions=self.num_actions,
                                  upper_bound=self.upper_bound,
                                  n_hidden_states=num_hidden_states)
         self.critic_model = Critic(n_states=self.num_states,
                                    n_action=self.num_actions,
                                    n_hidden_states=num_hidden_states)
         self.target_actor = Actor(n_states=self.num_states,
+                                  n_actions=self.num_actions,
                                   upper_bound=self.upper_bound,
                                   n_hidden_states=num_hidden_states)
         self.target_critic = Critic(n_states=self.num_states,
@@ -92,7 +95,6 @@ class DDPG:
               gamma: int = 0.99,
               tau: int = 5e-3,
               plot_name: Optional[str] = None):
-
         # To store reward history of each episode
         ep_reward_list = []
         # To store average reward history of last few episodes
@@ -136,7 +138,8 @@ class DDPG:
 
             # Mean of last 40 episodes
             avg_reward = np.mean(ep_reward_list[-100:])
-            print("Episode {}, Avg Reward is : {}".format(ep, avg_reward))
+            logger.info("Episode {}, Avg Reward is : {}, Episodic Reward: {}".format(
+                ep, avg_reward, episodic_reward))
             avg_reward_list.append(avg_reward)
 
         # call save weights method
@@ -170,10 +173,12 @@ def test_ddpg(problem: str = "MountainCarContinuous-v0",
     namespace = problem.split("-")[0]
     env = gym.make(problem)
     num_states = env.observation_space.shape[0]
+    num_actions = env.action_space.shape[0]
     upper_bound = env.action_space.high[0]
     lower_bound = env.action_space.low[0]
 
     actor_model = Actor(n_states=num_states,
+                        n_actions=num_actions,
                         upper_bound=upper_bound,
                         n_hidden_states=num_hidden_states)
 
@@ -212,3 +217,6 @@ def test_ddpg(problem: str = "MountainCarContinuous-v0",
         prev_state = state
 
     print("Episodic Reward: {}".format(episodic_reward))
+
+
+# test_ddpg(problem="MountainCarContinuous-v0", num_hidden_states=256)

@@ -5,6 +5,7 @@ github:sanidhyamangal
 
 from typing import Any
 import numpy as np  # for matrix multiplication
+import tensorflow as tf  # for deep learning
 
 
 class OUNoise:
