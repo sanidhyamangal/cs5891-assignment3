@@ -31,11 +31,11 @@ class DDPG:
     def __init__(self,
                  problem: str = "MountainCarContinuous-v0",
                  std: float = 0.2,
-                 num_hidden_states: int = 128,
+                 num_hidden_states: int = 64,
                  buffer_size: int = 100000,
                  batch_size=128,
-                 critic_lr: int = 0.002,
-                 actor_lr: int = 0.001) -> None:
+                 critic_lr: int = 0.0005,
+                 actor_lr: int = 0.0005) -> None:
 
         self.namespace = problem.split("-")[0]
         self.env = gym.make(problem)
@@ -94,9 +94,10 @@ class DDPG:
               total_episodes: int,
               gamma: int = 0.99,
               tau: int = 5e-3,
+              stopping_condition:float=90.0,
               plot_name: Optional[str] = None):
         
-        logger.info("Ressting Epsidode Reward and avg reward list")
+        logger.info("Resetting Epsidode Reward and avg reward list")
         # To store reward history of each episode
         ep_reward_list = []
         # To store average reward history of last few episodes
@@ -119,6 +120,10 @@ class DDPG:
                 action = self.policy(tf_prev_state, self.ou_noise)
                 # action = [None, action]
                 # Recieve state and reward from environment.
+
+                if self.num_actions > 1:
+                    action = action[0]
+                
                 state, reward, done, info = self.env.step(action)
 
                 self.buffer.record((prev_state, action, reward, state))
@@ -126,9 +131,9 @@ class DDPG:
 
                 self.buffer.learn(gamma)
                 update_target(self.target_actor.variables,
-                              self.actor_model.variables, tau)
+                            self.actor_model.variables, tau)
                 update_target(self.target_critic.variables,
-                              self.critic_model.variables, tau)
+                            self.critic_model.variables, tau)
 
                 # End this episode when `done` is True
                 if done:
@@ -144,6 +149,11 @@ class DDPG:
                 ep, avg_reward, episodic_reward))
             avg_reward_list.append(avg_reward)
 
+            if avg_reward_list[-1] >= stopping_condition:
+                logger.info("Problem Solved at : {}".format(ep))
+                break
+
+
         # call save weights method
         self.save_weights()
 
@@ -151,10 +161,13 @@ class DDPG:
             # Plotting graph
             # Episodes versus Avg. Rewards
             plt.plot(avg_reward_list)
+            plt.plot(ep_reward_list)
             plt.xlabel("Episode")
             plt.ylabel("Avg. Epsiodic Reward")
             plt.savefig(plot_name)
             plt.clf()
+        
+        logger.info("Training Finished !!")
 
     def save_weights(self) -> None:
 
@@ -223,3 +236,4 @@ def test_ddpg(problem: str = "MountainCarContinuous-v0",
 
 
 # test_ddpg(problem="MountainCarContinuous-v0", num_hidden_states=256)
+
