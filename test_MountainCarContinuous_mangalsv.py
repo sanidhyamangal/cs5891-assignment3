@@ -23,9 +23,9 @@ if __name__ == "__main__":
     parser.add_option("-e",
                       "--total_episodes",
                       dest="total_episodes",
-                      help="Mention total number of epochs to run, default: 3",
+                      help="Mention total number of epochs to run, default: 10",
                       type=int,
-                      default=3)
+                      default=10)
     parser.add_option(
         "--num_hidden_states",
         help="Hidden layer architecture for the models, default: 64,64",
