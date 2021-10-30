@@ -94,9 +94,9 @@ class DDPG:
               total_episodes: int,
               gamma: int = 0.99,
               tau: int = 5e-3,
-              stopping_condition:float=90.0,
+              stopping_condition: float = 90.0,
               plot_name: Optional[str] = None):
-        
+
         logger.info("Resetting Epsidode Reward and avg reward list")
         # To store reward history of each episode
         ep_reward_list = []
@@ -123,7 +123,7 @@ class DDPG:
 
                 if self.num_actions > 1:
                     action = action[0]
-                
+
                 state, reward, done, info = self.env.step(action)
 
                 self.buffer.record((prev_state, action, reward, state))
@@ -131,9 +131,9 @@ class DDPG:
 
                 self.buffer.learn(gamma)
                 update_target(self.target_actor.variables,
-                            self.actor_model.variables, tau)
+                              self.actor_model.variables, tau)
                 update_target(self.target_critic.variables,
-                            self.critic_model.variables, tau)
+                              self.critic_model.variables, tau)
 
                 # End this episode when `done` is True
                 if done:
@@ -145,14 +145,14 @@ class DDPG:
 
             # Mean of last 40 episodes
             avg_reward = np.mean(ep_reward_list[-100:])
-            logger.info("Episode {}, Avg Reward is : {}, Episodic Reward: {}".format(
-                ep, avg_reward, episodic_reward))
+            logger.info(
+                "Episode {}, Avg Reward is : {}, Episodic Reward: {}".format(
+                    ep, avg_reward, episodic_reward))
             avg_reward_list.append(avg_reward)
 
             if avg_reward_list[-1] >= stopping_condition:
                 logger.info("Problem Solved at : {}".format(ep))
                 break
-
 
         # call save weights method
         self.save_weights()
@@ -166,7 +166,7 @@ class DDPG:
             plt.ylabel("Avg. Epsiodic Reward")
             plt.savefig(plot_name)
             plt.clf()
-        
+
         logger.info("Training Finished !!")
 
     def save_weights(self) -> None:
@@ -174,17 +174,19 @@ class DDPG:
         if not os.path.exists("trained_models"): os.mkdir("trained_models")
 
         self.actor_model.save_weights(
-            f"trained_models/{self.namespace}-actor.h5")
+            f"trained_models/{self.namespace}-actor_mangalsv.h5")
         self.critic_model.save_weights(
-            f"trained_models/{self.namespace}-critic.h5")
+            f"trained_models/{self.namespace}-critic_mangalsv.h5")
         self.target_actor.save_weights(
-            f"trained_models/{self.namespace}-tg_actor.h5")
+            f"trained_models/{self.namespace}-tg_actor_mangalsv.h5")
         self.target_critic.save_weights(
-            f"trained_models/{self.namespace}-tg_critic.h5")
+            f"trained_models/{self.namespace}-tg_critic_mangalsv.h5")
 
 
 def test_ddpg(problem: str = "MountainCarContinuous-v0",
-              num_hidden_states: int = 128) -> None:
+              episodes: int = 3,
+              num_hidden_states: int = 64,
+              weight_path: Optional[str] = None) -> None:
 
     namespace = problem.split("-")[0]
     env = gym.make(problem)
@@ -198,7 +200,11 @@ def test_ddpg(problem: str = "MountainCarContinuous-v0",
                         upper_bound=upper_bound,
                         n_hidden_states=num_hidden_states)
 
-    actor_model.load_weights(f"trained_models/{namespace}-actor.h5")
+    if not weight_path:
+        actor_model.load_weights(
+            f"trained_models/{namespace}-actor_mangalsv.h5")
+    else:
+        actor_model.load_weights(weight_path)
 
     def policy(state):
         sampled_actions = tf.squeeze(actor_model(state))
@@ -210,30 +216,30 @@ def test_ddpg(problem: str = "MountainCarContinuous-v0",
 
         return [np.squeeze(legal_action)]
 
-    prev_state = env.reset()
-    episodic_reward = 0
+    for _ in range(episodes):
+        prev_state = env.reset()
+        episodic_reward = 0
 
-    while True:
-        # Uncomment this to see the Actor in action
-        # But not in a python notebook.
-        env.render()
+        while True:
+            # Uncomment this to see the Actor in action
+            # But not in a python notebook.
+            env.render()
 
-        tf_prev_state = tf.expand_dims(tf.convert_to_tensor(prev_state), 0)
+            tf_prev_state = tf.expand_dims(tf.convert_to_tensor(prev_state), 0)
 
-        action = policy(tf_prev_state)
+            action = policy(tf_prev_state)
 
-        # Recieve state and reward from environment.
-        state, reward, done, info = env.step(action)
+            # Recieve state and reward from environment.
+            state, reward, done, info = env.step(action)
 
-        episodic_reward += reward
+            episodic_reward += reward
 
-        if done:
-            break
+            if done:
+                break
 
-        prev_state = state
+            prev_state = state
 
-    print("Episodic Reward: {}".format(episodic_reward))
+        logger.info("Episodic Reward: {}".format(episodic_reward))
 
 
 # test_ddpg(problem="MountainCarContinuous-v0", num_hidden_states=256)
-
