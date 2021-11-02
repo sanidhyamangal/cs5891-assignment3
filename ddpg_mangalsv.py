@@ -229,6 +229,9 @@ def test_ddpg(problem: str = "MountainCarContinuous-v0",
 
             action = policy(tf_prev_state)
 
+            if num_actions > 1:
+                action = action[0]
+
             # Recieve state and reward from environment.
             state, reward, done, info = env.step(action)
 

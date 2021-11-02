@@ -2,10 +2,12 @@
 author:Sanidhya Mangal
 github:sanidhyamangal
 """
-
+import tensorflow as tf # for deep learning
 import optparse
 
+tf.random.set_seed(0)
 from ddpg_mangalsv import DDPG
+
 
 if __name__ == "__main__":
     parser = optparse.OptionParser(
@@ -24,32 +26,32 @@ if __name__ == "__main__":
         "-e",
         "--total_episodes",
         dest="total_episodes",
-        help="Mention total number of epochs to run, default: 500",
+        help="Mention total number of epochs to run, default: 1000",
         type=int,
-        default=500)
+        default=1000)
     parser.add_option(
         "-l",
         "--lr",
         dest="lr",
-        help="Specify the learning rate for training the model, default: 1e-3",
+        help="Specify the learning rate for training the model, default: 5e-4",
         type=float,
         default=1e-3)
     parser.add_option(
         "--num_hidden_states",
-        help="Hidden layer architecture for the models, default: 400,300",
-        default="400,300")
+        help="Hidden layer architecture for the models, default: 512,512",
+        default="512,512")
     parser.add_option(
         "--std",
-        help="Specify the standard dev for the ou noise, default: 1e-1",
+        help="Specify the standard dev for the ou noise, default: 5e-4",
         type=float,
-        default=1e-1)
+        default=5e-4)
     parser.add_option(
         "-b",
         "--buffer_size",
         help=
-        "Specify the buffer size for keeping the length of replay buffer, default: 200000",
+        "Specify the buffer size for keeping the length of replay buffer, default: 100000",
         type=int,
-        default=200000)
+        default=100000)
     parser.add_option(
         "--batch_size",
         help="Specify the batch size for the training batch, default to 64",
@@ -59,7 +61,7 @@ if __name__ == "__main__":
         "--plot_name",
         help="Specify the name of plot to save, default: mountain_car.png",
         type="str",
-        default="lunar_lander_mangalsv.png")
+        default="lunarlander_mangalsv.png")
     (options, args) = parser.parse_args()
 
     n_hidden_states = list(
@@ -73,4 +75,4 @@ if __name__ == "__main__":
                     actor_lr=options.lr,
                     critic_lr=options.lr)
 
-        ddpg.train(options.total_episodes,gamma=0.98,tau=-1,stopping_condition=200,plot_name=options.plot_name)
+        ddpg.train(options.total_episodes,stopping_condition=200,plot_name=options.plot_name)
