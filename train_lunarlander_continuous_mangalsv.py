@@ -33,7 +33,7 @@ if __name__ == "__main__":
         dest="lr",
         help="Specify the learning rate for training the model, default: 1e-3",
         type=float,
-        default=5e-4)
+        default=1e-3)
     parser.add_option(
         "--num_hidden_states",
         help="Hidden layer architecture for the models, default: 400,300",
@@ -73,4 +73,4 @@ if __name__ == "__main__":
                     actor_lr=options.lr,
                     critic_lr=options.lr)
 
-        ddpg.train(options.total_episodes, stopping_condition=200,plot_name=options.plot_name)
+        ddpg.train(options.total_episodes,gamma=0.98,tau=-1,stopping_condition=200,plot_name=options.plot_name)
