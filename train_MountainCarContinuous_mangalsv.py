@@ -6,6 +6,7 @@ github:sanidhyamangal
 import optparse
 
 from ddpg_mangalsv import DDPG
+from reinforce_mangalsv import Reinforce
 
 if __name__ == "__main__":
     parser = optparse.OptionParser(
@@ -28,10 +29,17 @@ if __name__ == "__main__":
         type=int,
         default=500)
     parser.add_option(
+        "-s",
+        "--start_episode",
+        dest="start_episode",
+        help="Specify the start episode for reinforce algorithm, default: 50",
+        type=int,
+        default=50)
+    parser.add_option(
         "-l",
         "--lr",
         dest="lr",
-        help="Specify the learning rate for training the model, default: 1e-3",
+        help="Specify the learning rate for training the model, default: 5e-4",
         type=float,
         default=5e-4)
     parser.add_option(
@@ -74,3 +82,11 @@ if __name__ == "__main__":
                     critic_lr=options.lr)
 
         ddpg.train(options.total_episodes, plot_name=options.plot_name)
+
+    else:
+        reinforce = Reinforce(std=options.std,
+                              num_hidden_states=n_hidden_states,
+                              lr=options.lr)
+        reinforce.train(options.total_episodes,
+                        options.start_episode,
+                        plot_name=options.plot_name)

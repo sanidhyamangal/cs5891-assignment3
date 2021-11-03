@@ -2,12 +2,11 @@
 author:Sanidhya Mangal
 github:sanidhyamangal
 """
-import tensorflow as tf # for deep learning
+import tensorflow as tf  # for deep learning
 import optparse
 
 tf.random.set_seed(0)
 from ddpg_mangalsv import DDPG
-
 
 if __name__ == "__main__":
     parser = optparse.OptionParser(
@@ -59,7 +58,8 @@ if __name__ == "__main__":
         default=64)
     parser.add_option(
         "--plot_name",
-        help="Specify the name of plot to save, default: lunarlander_mangalsv.png",
+        help=
+        "Specify the name of plot to save, default: lunarlander_mangalsv.png",
         type="str",
         default="lunarlander_mangalsv.png")
     (options, args) = parser.parse_args()
@@ -68,11 +68,14 @@ if __name__ == "__main__":
         map(lambda x: int(x), options.num_hidden_states.split(",")))
 
     if options.agent == "ddpg":
-        ddpg = DDPG(problem="LunarLanderContinuous-v2",std=options.std,
+        ddpg = DDPG(problem="LunarLanderContinuous-v2",
+                    std=options.std,
                     num_hidden_states=n_hidden_states,
                     buffer_size=options.buffer_size,
                     batch_size=options.batch_size,
                     actor_lr=options.lr,
                     critic_lr=options.lr)
 
-        ddpg.train(options.total_episodes,stopping_condition=200,plot_name=options.plot_name)
+        ddpg.train(options.total_episodes,
+                   stopping_condition=200,
+                   plot_name=options.plot_name)

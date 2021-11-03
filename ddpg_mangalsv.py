@@ -243,6 +243,3 @@ def test_ddpg(problem: str = "MountainCarContinuous-v0",
             prev_state = state
 
         logger.info("Episodic Reward: {}".format(episodic_reward))
-
-
-# test_ddpg(problem="MountainCarContinuous-v0", num_hidden_states=256)
