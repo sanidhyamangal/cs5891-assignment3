@@ -7,39 +7,28 @@ from typing import List
 
 import numpy as np  # for matrix multiplication
 import tensorflow as tf  # for deep learning
-import tensorflow_probability as tfp  # for probablistic
 from tensorflow.keras import layers, models
 
 
-class PolicyNetwork(models.Model):
+def PolicyNetwork(n_states: int,n_actions:int,upper_bound:int,
+          n_hidden_states: List[int] = [64, 64]):
 
-    def __init__(self, env_space:int, action_space:int, hidden_state:int, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    # Initialize weights between -3e-3 and 3-e3
+    last_init = tf.random_uniform_initializer(minval=-0.003, maxval=0.003)
 
-        self.env_space = env_space
-        self.action_space = action_space
+    inputs = layers.Input(shape=(n_states, ))
+    out = layers.Dense(n_hidden_states[0], activation="relu")(inputs)
 
-        self.model = models.Sequential([
-            layers.Dense(units=hidden_state, activation="relu"),
-            layers.Dense(units=action_space, activation="softmax")
-        ])
+    for units in n_hidden_states[1:]:
+        out = layers.Dense(units, activation="relu")(out)
 
-    def call(self, state, training=None):
-        return self.model(state)
-    
+    output_mu = layers.Dense(n_actions,activation="tanh",kernel_initializer=last_init)(out)
 
-    def get_action(self, state:np.array):
-        # compute the softmax probablities for the state
-        prob = self.call(np.array([state]))
-        
-        # compute the prob distributions for the given probs
-        dist = tfp.distributions.Categorical(probs=prob, dtype=tf.float32)
-
-        # sample the probablity distribution
-        action = dist.sample()
-
-        # return action with highest probablity
-        return int(action.numpy()[0])
+    mu_output = layers.Lambda(lambda x: x * upper_bound)(output_mu)
+    std_output = layers.Dense(n_actions, activation='softplus')(out)
+  
+    model = tf.keras.Model(inputs, [mu_output, std_output])
+    return model
 
 def Actor(n_states: int,
           n_actions: int,
