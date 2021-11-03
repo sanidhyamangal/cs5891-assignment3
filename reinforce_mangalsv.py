@@ -23,7 +23,7 @@ class Reinforce:
     def __init__(self,
                  problem: str = "MountainCarContinuous-v0",
                  std: float = 0.2,
-                 num_hidden_states: List[int] = [64,64],
+                 num_hidden_states: List[int] = [64, 64],
                  lr: int = 5e-4) -> None:
 
         self.namespace = problem.split("-")[0]
@@ -32,11 +32,10 @@ class Reinforce:
 
     def train(self,
               total_episodes: int,
-              start_episode:int,
+              start_episode: int,
               gamma: int = 0.99,
               stopping_condition: float = 90.0,
               plot_name: Optional[str] = None):
-
 
         logger.info("Resetting Epsidode Reward and avg reward list")
         # To store reward history of each episode
@@ -53,19 +52,23 @@ class Reinforce:
                 logger.info("Exploration-Exploitation Begin !!")
 
             while True:
-                if episode < start_episode: action = self.env.action_space.sample()
-                else: action = self.pg.get_action(state)
+                if episode < start_episode:
+                    action = self.env.action_space.sample()
+                else:
+                    action = self.pg.get_action(state)
                 # action, log_prob = policy_net.get_action(state)
-                
+
                 actions.append(action)
                 new_state, reward, done, _ = self.env.step(action)
                 rewards.append(reward)
 
                 if done:
-                    self.pg.train(state, action, rewards)
+                    self.pg.train(state, action, rewards, gamma)
                     all_rewards.append(np.sum(rewards))
                     avg_rewards.append(np.mean(all_rewards[-100:]))
-                    logger.info(f"Episode: {episode}, Average Reward: {avg_rewards[-1]}, Episodic Reward: {all_rewards[-1]}")
+                    logger.info(
+                        f"Episode: {episode}, Average Reward: {avg_rewards[-1]}, Episodic Reward: {all_rewards[-1]}"
+                    )
                     break
 
                 state = new_state
@@ -92,65 +95,51 @@ class Reinforce:
             f"trained_models/{self.namespace}-reinforce_mangalsv.h5")
 
 
-# env = gym.make('MountainCarContinuous-v0')
+def test_reinforce(problem: str = "MountainCarContinuous-v0",
+                   episodes: int = 10,
+                   num_hidden_states: List[int] = [64, 64],
+                   weight_path: Optional[str] = None) -> None:
 
-# max_episode_num = 225
-# max_steps = 10000
-# all_rewards = []
-# avg_rewards = []
+    namespace = problem.split("-")[0]
+    env = gym.make(problem)
+    num_states = env.observation_space.shape[0]
+    num_actions = env.action_space.shape[0]
+    upper_bound = env.action_space.high[0]
 
-# for episode in range(max_episode_num):
-#     state = env.reset()
-#     actions = []
-#     rewards = []
+    model = PolicyNetwork(num_states, num_actions, upper_bound,
+                          num_hidden_states)
 
-#     for steps in range(max_steps):
-#         if episode < 200: action = env.action_space.sample()
-#         else: action = policy_gradient.get_action(state)
-#         # action, log_prob = policy_net.get_action(state)
-        
-#         actions.append(action)
-#         new_state, reward, done, _ = env.step(action)
-#         rewards.append(reward)
+    def get_action(state):
+        state = np.reshape(state, [1, num_states])
+        mu, std = model(state)
+        mu, std = mu[0], std[0]
+        return np.random.normal(mu, std, size=num_actions)
 
-#         if done:
-#             policy_gradient.train(state, action, rewards)
-#             all_rewards.append(np.sum(rewards))
-#             avg_rewards.append(np.mean(all_rewards[-100:]))
-#             logger.info(f"Episode: {episode}, Average Reward: {avg_rewards[-1]}, Episodic Reward: {all_rewards[-1]}")
-#             break
+    if not weight_path:
+        model.load_weights(f"trained_models/{namespace}-reinforce_mangalsv.h5")
+    else:
+        model.load_weights(weight_path)
 
-#         state = new_state
+    for _ in range(episodes):
+        state = env.reset()
+        episodic_reward = 0
 
-# plt.plot(all_rewards)
-# plt.plot(all_rewards)
-# plt.xlabel('Episode')
-# plt.show()
+        while True:
+            env.render()
 
+            action = get_action(state)
 
-# for episode in range(10):
-#     state = env.reset()
-#     log_probs = []
-#     rewards = []
+            if num_actions > 1:
+                action = action[0]
 
-#     for steps in range(max_steps):
-#         action= policy_gradient.get_action(state)
-#         # action, log_prob = policy_net.get_action(state)
-#         new_state, reward, done, _ = env.step(action)
-#         rewards.append(reward)
-#         env.render()
+            # Recieve state and reward from environment.
+            next_state, reward, done, info = env.step(action)
 
-#         if done:
-#             logger.info(f"Episode: {episode}, Episodic Reward: {np.sum(rewards)}")
-#             # update_policy(policy_net, rewards, log_probs, optimizer)
-#             # numsteps.append(steps)
-#             # avg_numsteps.append(np.mean(numsteps[-10:]))
-#             # all_rewards.append(np.mean(rewards[-100:]))
-#             # logger.info(f"Episode: {episode}, Average Reward: {all_rewards[-1]}")
-#             break
+            episodic_reward += reward
 
-#         state = new_state
+            if done:
+                break
 
-reinforce = Reinforce(std=0.5)
+            state = next_state
 
-reinforce.train(300,5,plot_name="reinforce_mc.png")
+        logger.info("Episodic Reward: {}".format(episodic_reward))

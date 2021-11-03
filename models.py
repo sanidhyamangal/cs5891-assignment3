@@ -10,8 +10,10 @@ import tensorflow as tf  # for deep learning
 from tensorflow.keras import layers, models
 
 
-def PolicyNetwork(n_states: int,n_actions:int,upper_bound:int,
-          n_hidden_states: List[int] = [64, 64]):
+def PolicyNetwork(n_states: int,
+                  n_actions: int,
+                  upper_bound: int,
+                  n_hidden_states: List[int] = [64, 64]):
 
     # Initialize weights between -3e-3 and 3-e3
     last_init = tf.random_uniform_initializer(minval=-0.003, maxval=0.003)
@@ -22,13 +24,16 @@ def PolicyNetwork(n_states: int,n_actions:int,upper_bound:int,
     for units in n_hidden_states[1:]:
         out = layers.Dense(units, activation="relu")(out)
 
-    output_mu = layers.Dense(n_actions,activation="tanh",kernel_initializer=last_init)(out)
+    output_mu = layers.Dense(n_actions,
+                             activation="tanh",
+                             kernel_initializer=last_init)(out)
 
     mu_output = layers.Lambda(lambda x: x * upper_bound)(output_mu)
     std_output = layers.Dense(n_actions, activation='softplus')(out)
-  
+
     model = tf.keras.Model(inputs, [mu_output, std_output])
     return model
+
 
 def Actor(n_states: int,
           n_actions: int,

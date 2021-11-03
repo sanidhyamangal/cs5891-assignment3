@@ -20,12 +20,13 @@ if __name__ == "__main__":
         "Select an agent to train MountainCarContinous model, default: ddpg",
         choices=["reinforce", "ddpg"],
         default="ddpg")
-    parser.add_option("-e",
-                      "--total_episodes",
-                      dest="total_episodes",
-                      help="Mention total number of epochs to run, default: 10",
-                      type=int,
-                      default=10)
+    parser.add_option(
+        "-e",
+        "--total_episodes",
+        dest="total_episodes",
+        help="Mention total number of epochs to run, default: 10",
+        type=int,
+        default=10)
     parser.add_option(
         "--num_hidden_states",
         help="Hidden layer architecture for the models, default: 512,512",
@@ -39,6 +40,7 @@ if __name__ == "__main__":
         map(lambda x: int(x), options.num_hidden_states.split(",")))
 
     if options.agent == "ddpg":
-        test_ddpg(problem="LunarLanderContinuous-v2",episodes=options.total_episodes,
+        test_ddpg(problem="LunarLanderContinuous-v2",
+                  episodes=options.total_episodes,
                   num_hidden_states=n_hidden_states,
                   weight_path=options.weight_path)
