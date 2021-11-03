@@ -35,16 +35,16 @@ if __name__ == "__main__":
         dest="lr",
         help="Specify the learning rate for training the model, default: 5e-4",
         type=float,
-        default=1e-3)
+        default=5e-4)
     parser.add_option(
         "--num_hidden_states",
         help="Hidden layer architecture for the models, default: 512,512",
         default="512,512")
     parser.add_option(
         "--std",
-        help="Specify the standard dev for the ou noise, default: 5e-4",
+        help="Specify the standard dev for the ou noise, default: 1e-1",
         type=float,
-        default=5e-4)
+        default=1e-1)
     parser.add_option(
         "-b",
         "--buffer_size",
@@ -59,7 +59,7 @@ if __name__ == "__main__":
         default=64)
     parser.add_option(
         "--plot_name",
-        help="Specify the name of plot to save, default: mountain_car.png",
+        help="Specify the name of plot to save, default: lunarlander_mangalsv.png",
         type="str",
         default="lunarlander_mangalsv.png")
     (options, args) = parser.parse_args()
