@@ -153,4 +153,4 @@ class Reinforce:
 
 reinforce = Reinforce(std=0.5)
 
-reinforce.train(10,8,plot_name="reinforce_mc.png")
+reinforce.train(300,5,plot_name="reinforce_mc.png")

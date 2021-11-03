@@ -29,8 +29,9 @@ class PolicyGradient:
         return tf.reduce_sum(log_policy_pdf, 1, keepdims=True)
 
     def compute_loss(self, mu, std, actions, rewards, gamma:int=0.99):
+        discounted_rewards = rewards * gamma ** np.arange(len(rewards))
         log_policy_pdf = self.log_pdf(mu, std, actions)
-        loss_policy = log_policy_pdf * rewards
+        loss_policy = log_policy_pdf * discounted_rewards
         return tf.reduce_sum(-loss_policy)
 
     # @tf.function
