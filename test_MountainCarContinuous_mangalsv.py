@@ -6,6 +6,7 @@ github:sanidhyamangal
 import optparse
 
 from ddpg_mangalsv import test_ddpg
+from reinforce_mangalsv import test_reinforce
 
 if __name__ == "__main__":
     parser = optparse.OptionParser(
@@ -20,12 +21,13 @@ if __name__ == "__main__":
         "Select an agent to train MountainCarContinous model, default: ddpg",
         choices=["reinforce", "ddpg"],
         default="ddpg")
-    parser.add_option("-e",
-                      "--total_episodes",
-                      dest="total_episodes",
-                      help="Mention total number of epochs to run, default: 10",
-                      type=int,
-                      default=10)
+    parser.add_option(
+        "-e",
+        "--total_episodes",
+        dest="total_episodes",
+        help="Mention total number of epochs to run, default: 10",
+        type=int,
+        default=10)
     parser.add_option(
         "--num_hidden_states",
         help="Hidden layer architecture for the models, default: 64,64",
@@ -42,3 +44,7 @@ if __name__ == "__main__":
         test_ddpg(episodes=options.total_episodes,
                   num_hidden_states=n_hidden_states,
                   weight_path=options.weight_path)
+    else:
+        test_reinforce(episodes=options.total_episodes,
+                       num_hidden_states=n_hidden_states,
+                       weight_path=options.weight_path)
