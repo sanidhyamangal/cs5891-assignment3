@@ -10,7 +10,7 @@ from reinforce_mangalsv import test_reinforce
 
 if __name__ == "__main__":
     parser = optparse.OptionParser(
-        "Script to train the MountainCar Continous model using Reinforce and DDPG algorithm"
+        "Script to test the MountainCar Continous model using Reinforce and DDPG algorithm"
     )
 
     parser.add_option(
@@ -18,7 +18,7 @@ if __name__ == "__main__":
         "--agent",
         dest="agent",
         help=
-        "Select an agent to train MountainCarContinous model, default: ddpg",
+        "Select an agent to test MountainCarContinous model, default: ddpg",
         choices=["reinforce", "ddpg"],
         default="ddpg")
     parser.add_option(
