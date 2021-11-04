@@ -50,6 +50,8 @@ class Reinforce:
         for episode in range(total_episodes):
             state = self.env.reset()
             rewards = []
+            states = []
+            actions = []
 
             # is start episode comes work on sampling the actions from the state
             if episode == start_episode:
@@ -63,15 +65,17 @@ class Reinforce:
                     # sample the action from the policy network
                     action = self.pg.get_action(state)
 
+                actions.append(action)
                 # take the action in the env
                 new_state, reward, done, _ = self.env.step(action)
+                states.append(new_state)
 
                 # append the rewards and store it for updating the policy
                 rewards.append(reward)
 
                 if done:
                     # if done train the network based on actions rewards
-                    self.pg.train(state, action, rewards, gamma)
+                    self.pg.train(np.array(states), np.array(actions), rewards, gamma)
 
                     # append the rewards for plotting
                     all_rewards.append(np.sum(rewards))

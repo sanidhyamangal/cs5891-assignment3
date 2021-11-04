@@ -41,7 +41,7 @@ class PolicyGradient:
 
         # return the action along with the random noise for the learning
         return np.random.normal(
-            mu, std, size=self.action_dim) + np.random.normal(0, 0.5)
+            mu, std, size=self.action_dim) # work on removing it.
     
 
     # compute the log pdf for computing the loss for the
@@ -58,7 +58,7 @@ class PolicyGradient:
 
     def compute_loss(self, mu, std, actions, rewards, gamma: int = 0.99):
         # compute discounted rewards for loss function
-        discounted_rewards = rewards * gamma**np.arange(len(rewards))
+        discounted_rewards = rewards * (gamma**np.arange(len(rewards)))
 
         # compute the log pdf for the given action
         log_policy_pdf = self.log_pdf(mu, std, actions)
