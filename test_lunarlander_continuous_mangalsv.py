@@ -9,7 +9,7 @@ from ddpg_mangalsv import test_ddpg
 
 if __name__ == "__main__":
     parser = optparse.OptionParser(
-        "Script to train the MountainCar Continous model using Reinforce and DDPG algorithm"
+        "Script to test the LunarLandingContinous agent using DDPG algorithm"
     )
 
     parser.add_option(
@@ -17,8 +17,8 @@ if __name__ == "__main__":
         "--agent",
         dest="agent",
         help=
-        "Select an agent to train MountainCarContinous model, default: ddpg",
-        choices=["reinforce", "ddpg"],
+        "Select an agent to test LunarLandingContinous model, default: ddpg",
+        choices=["ddpg"],
         default="ddpg")
     parser.add_option(
         "-e",
