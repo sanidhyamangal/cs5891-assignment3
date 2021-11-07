@@ -174,3 +174,6 @@ All the logs for training agents are present in this repo as train_logs_*.txt wh
 * Reinforce Mountain Car : _34 mins for 2000 iters. (Not Converged)_
 * DDPG Mountain Car : _3.5 mins for 124 iters, solved at 124_
 * DDPG Lunar Landing : _64 mins for 1000 iters. (Avg Score Oscillated b/w 100-170)_
+
+## Citations
+1. https://github.com/DLR-RM/rl-baselines3-zoo (Mountain Car DDPG)
